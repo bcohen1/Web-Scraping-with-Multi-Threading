@@ -18,19 +18,19 @@ vals.drop(vals[vals['Type']!='Common Stock'].index, inplace=True)
 # vals.drop(vals[vals['Price']<=1.0].index, inplace=True)
 vals.reset_index(drop=True, inplace=True)
 
-'''create urls for scraping'''
 def generate_url(row):
+'''create urls for scraping'''
     url = 'https://finance.yahoo.com/quote/{}/profile?p={}'.format(row, row)
     return url
 
 vals['URLs'] = np.vectorize(generate_url)(vals['Ticker'])
 URLs = list(vals['URLs'])
 
-'''scrape company descriptions from yahoo finance html using multi-threading'''
 results = []
 results_url = []
 
 def parse(url):
+'''scrape company descriptions from yahoo finance html using beautiful soup'''
     html_text = requests.get(url).text
     soup = BeautifulSoup(html_text, 'html5lib')
     search = soup.find_all('p', {'class':'Mt(15px) Lh(1.6)'})
@@ -45,8 +45,8 @@ def parse(url):
 
 q = queue.Queue()
 
-'''function to get next item in queue until there are none left'''
 def worker():
+'''get next item in queue until there are none left'''
     while True:
         item = q.get()
         if item is None:
@@ -54,11 +54,11 @@ def worker():
         parse(item)
         q.task_done()
 
-'''4 times number of cores + 1 for main'''
+#4 times number of cores + 1 for main
 num_worker_threads = 17
 threads=[]
 
-'''starts threads that are ended when script finishes'''
+#starts threads that are ended when script finishes
 for _ in range(num_worker_threads):
     t = threading.Thread(target=worker, daemon=True)
     t.start()
@@ -67,10 +67,10 @@ for _ in range(num_worker_threads):
 for item in URLs:
     q.put(item)
 
-'''block until all tasks are done'''
+#block until all tasks are done
 q.join()
 
-'''clean up results and flag key terms '''
+#clean up results and flag key terms
 results_df = pd.DataFrame(list(zip(results, results_url)),
                columns =['Description', 'URLs'])
 vals = vals.merge(results_df)
