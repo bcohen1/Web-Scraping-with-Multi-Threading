@@ -50,7 +50,7 @@ def merge_data(df, results, results_url):
     results_df = pd.DataFrame(zip(results, results_url), 
                               columns =['Description', 'urls'])
     df = df.merge(results_df)
-    # df.drop(df[df['Description']=='No Profile available'].index, inplace=True)
+    df.drop(df[df['Description']=='No Profile available'].index, inplace=True)
     return df
 
 def flag_key_terms(df):
@@ -85,13 +85,3 @@ if __name__ == '__main__':
     df = merge_data(df, results, results_url)
     df = flag_key_terms(df)
     write_data(df)
-
-headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'}
-html_text = requests.get(urls[248], headers=headers).text
-soup = BeautifulSoup(html_text, 'html5lib')
-search = soup.find_all('p', {'class':'Mt(15px) Lh(1.6)'})
-for i in search:
-    print(i)
-    
-    
-    
