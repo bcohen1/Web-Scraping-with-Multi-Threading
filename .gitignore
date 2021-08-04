@@ -1,4 +1,7 @@
-#Ignore all xlsx files
-*.xlsx
-*.xls
+# Ignore all csv files
 *.csv
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+.pytest_cache
