@@ -1,0 +1,10 @@
+.dockerignore
+.gitignore
+.pytest_cache/
+Dockerfile
+LICENSE
+Makefile
+README.md
+scraping-yahoo-finance/
+stock_info.csv
+__pycache__/

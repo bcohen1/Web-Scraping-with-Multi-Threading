@@ -1,7 +1,9 @@
-# Ignore all csv files
-*.csv
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
-*.py[cod]
-.pytest_cache
+.pytest_cache/
+
+# Venv
+scraping-yahoo-finance/
+
+# Ignore csv output file
+stock_info.csv
