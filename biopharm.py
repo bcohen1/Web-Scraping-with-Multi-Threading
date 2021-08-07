@@ -5,10 +5,9 @@ from bs4 import BeautifulSoup
 from concurrent.futures import ThreadPoolExecutor
 
 
-def generate_clean_csv():
+def clean_csv():
     """returns cleaned and properly formatted df from original .csv"""
     df = pd.read_csv("screener_results.csv")
-    df.drop(df.tail(17).index, inplace=True)
     df = df[
         [
             "Symbol",
@@ -34,9 +33,9 @@ def generate_clean_csv():
     return df
 
 
-def generate_url(row):
+def generate_url(ticker):
     """returns formatted url used for scraping"""
-    return f"https://finance.yahoo.com/quote/{row}/profile?p={row}"
+    return f"https://finance.yahoo.com/quote/{ticker}/profile?p={ticker}"
 
 
 def create_urls(df):
@@ -45,9 +44,8 @@ def create_urls(df):
     return df
 
 
-def parse_html(url):
+def scrape_url(url):
     """scrapes company descriptions from yahoo finance html using beautiful soup"""
-    results_url.append(url)
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36"
     }
@@ -55,26 +53,16 @@ def parse_html(url):
     soup = BeautifulSoup(html_text, "html5lib")
     search = soup.find_all("p", {"class": "Mt(15px) Lh(1.6)"})
     if search == []:
-        results.append("No Profile available")
+        return "No Profile available"
     else:
-        results.append(search[0].text)
+        return search[0].text
 
 
 def multi_thread_parse(urls):
-    """gets next item in queue and calls "parse" until queue is empty"""
+    """gets next url in queue and calls "scrape_url" until queue is empty"""
     # "with" statement ensures threads are cleaned up promptly
     with ThreadPoolExecutor() as executor:
-        future = executor.map(parse_html, urls)
-
-
-def merge_data(df, results, results_url):
-    """returns merged df including original .csv and web scrape results"""
-    results_df = pd.DataFrame(
-        zip(results, results_url), columns=["Description", "urls"]
-    )
-    df = df.merge(results_df)
-    df.drop(df[df["Description"] == "No Profile available"].index, inplace=True)
-    return df
+        return executor.map(scrape_url, urls)
 
 
 def flag_key_terms(df):
@@ -105,18 +93,17 @@ def flag_key_terms(df):
     return df
 
 
-def write_data(df):
-    """writes final df to csv"""
+def main():
+    df = clean_csv()
+    df = create_urls(df)
+    urls = list(df["urls"])
+    results = []
+    for result in multi_thread_parse(urls):
+        results.append(result)
+    df['Description'] = results
+    df = flag_key_terms(df)
     df.to_csv("stock_info.csv", index=False)
 
 
 if __name__ == "__main__":
-    results = []
-    results_url = []
-    df = generate_clean_csv()
-    df = create_urls(df)
-    urls = list(df["urls"])
-    multi_thread_parse(urls)
-    df = merge_data(df, results, results_url)
-    df = flag_key_terms(df)
-    write_data(df)
+    main()

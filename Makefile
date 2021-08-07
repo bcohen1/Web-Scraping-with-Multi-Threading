@@ -1,9 +1,9 @@
-venv = scraping-yahoo-finance
+VENV = scraping-yahoo-finance
 
 activate:
-	$(venv)\Scripts\activate
+	$(VENV)\Scripts\activate
 
-init: activate
+init:
 	pip install -r requirements.txt
 
 format: activate
@@ -11,3 +11,13 @@ format: activate
 
 test: activate
 	pytest
+
+build-image: init
+	docker build --tag $(VENV) .
+
+run-image: build-image
+	docker run --name $(VENV) -d -p 80:80 $(VENV)
+
+copy: run-image
+	timeout 180
+	docker cp $(VENV):/Docker/stock_info.csv .

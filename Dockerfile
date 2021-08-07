@@ -1,6 +1,6 @@
-# syntax=docker/dockerfile:1
+# syntax=docker/dockerfile:1.2
 
-FROM python:latest
+FROM python:3.9-slim-buster
 
 WORKDIR /Docker
 
@@ -10,6 +10,4 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
-CMD [ "biopharm.py"]
-
-ENTRYPOINT [ "python3" ]
+CMD ["python", "biopharm.py"]
