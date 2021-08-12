@@ -8,6 +8,5 @@ COPY requirements.txt .
 
 RUN pip install -r requirements.txt
 
-COPY . .
-
-CMD ["python", "biopharm.py"]
+COPY biopharm.py .
+COPY screener_results.csv .

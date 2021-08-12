@@ -4,7 +4,7 @@ import biopharm
 
 @pytest.fixture
 def test_df():
-    return biopharm.clean_csv()
+    return biopharm.load_fidelity_csv("screener_results")
 
 
 @pytest.fixture
@@ -21,12 +21,11 @@ def sample_multi_thread_result():
     return results
 
 
-# @pytest.fixture
-# def test_df_merged(test_df_url, sample_multi_thread_result):
-#     results, results_url = sample_multi_thread_result
-#     return biopharm.merge_data(test_df_url, results, results_url)
-
-
 @pytest.fixture
-def test_df_flagged(test_df_merged):
-    return biopharm.flag_key_terms(test_df_merged)
+def sample_key_terms():
+    key_terms = {
+        "phase_3": r"phase(?:\s{1,}3|\s{1,}I{3})",
+        "phase_2": r"phase(?:\s{1,}2|\s{1,}I{2})",
+        "alzheimers": r"alzheimer"
+    }
+    return key_terms

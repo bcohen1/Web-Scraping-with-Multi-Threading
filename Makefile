@@ -4,7 +4,7 @@ activate:
 	$(VENV)\Scripts\activate
 
 init:
-	pip install -r requirements.txt
+	@pip install -r requirements.txt
 
 format: activate
 	@black .
@@ -13,11 +13,11 @@ test: activate
 	pytest
 
 build-image: init
-	docker build --tag $(VENV) .
+	docker build --tag $(VENV) --no-cache .
 
-run-image: build-image
-	docker run --name $(VENV) -d -p 80:80 $(VENV)
+run-container: build-image
+	docker run -d -it -v $(CURDIR)/Docker:/Docker/mount --name $(VENV) --rm $(VENV)
 
-copy: run-image
-	timeout 180
-	docker cp $(VENV):/Docker/stock_info.csv .
+run-script: run-container
+	docker exec -it $(VENV) bash -c "python biopharm.py; mv stock_info.csv ./mount"
+	docker stop $(VENV)
