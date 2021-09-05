@@ -66,7 +66,7 @@ def flag_key_terms(df, key_terms):
     return df
 
 
-def main(file):
+def main(file, output_dir):
     df = load_fidelity_csv(file)
     df = create_urls(df)
     urls = list(df["urls"])
@@ -77,8 +77,8 @@ def main(file):
         "alzheimers": r"alzheimer",
     }
     df = flag_key_terms(df, key_terms)
-    df.to_csv("stock_info.csv", index=False)
+    df.to_csv(output_dir + "stock_info.csv", index=False)
 
 
 if __name__ == "__main__":
-    main("screener_results")
+    main("screener_results", "")

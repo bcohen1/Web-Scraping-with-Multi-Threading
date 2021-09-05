@@ -16,7 +16,7 @@ build-image: init
 	docker build --tag $(VENV) --no-cache .
 
 run-container: build-image
-	docker run -d -it -v $(CURDIR)/Docker:/Docker/mount --name $(VENV) --rm $(VENV)
+	docker run -d -it -v $(CURDIR)/usr/src:/usr/src/mount --name $(VENV) --rm $(VENV)
 
 run-script: run-container
 	docker exec -it $(VENV) bash -c "python biopharm.py; mv stock_info.csv ./mount"
