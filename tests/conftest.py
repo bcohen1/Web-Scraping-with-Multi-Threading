@@ -4,12 +4,13 @@ import biopharm
 
 @pytest.fixture
 def test_df():
-    return biopharm.load_fidelity_csv("screener_results")
+    return biopharm.load_fidelity_csv("screener_results", "")
 
 
 @pytest.fixture
-def test_df_url(test_df):
-    return biopharm.create_urls(test_df)
+def test_urls(test_df):
+    tickers = test_df["Ticker"]
+    return biopharm.create_urls(tickers)
 
 
 @pytest.fixture
@@ -26,6 +27,6 @@ def sample_key_terms():
     key_terms = {
         "phase_3": r"phase(?:\s{1,}3|\s{1,}I{3})",
         "phase_2": r"phase(?:\s{1,}2|\s{1,}I{2})",
-        "alzheimers": r"alzheimer"
+        "alzheimer": r"alzheimer"
     }
     return key_terms

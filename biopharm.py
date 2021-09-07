@@ -5,9 +5,9 @@ from bs4 import BeautifulSoup
 from concurrent.futures import ThreadPoolExecutor
 
 
-def load_fidelity_csv(file):
-    """returns cleaned and properly formatted df from original .csv"""
-    df = pd.read_csv(f"{file}.csv")
+def load_fidelity_csv(file, input_dir):
+    """returns cleaned and properly formatted df from Fidelity .csv"""
+    df = pd.read_csv(input_dir + f"{file}.csv")
 
     col_mapping = {
         "Symbol": "Ticker",
@@ -29,10 +29,10 @@ def generate_url(ticker):
     return f"https://finance.yahoo.com/quote/{ticker}/profile?p={ticker}"
 
 
-def create_urls(df):
-    """returns url list by calling "generate_url" for all tickers in .csv"""
-    df["urls"] = np.vectorize(generate_url)(df["Ticker"])
-    return df
+def create_urls(tickers):
+    """returns url list by calling generate_url() on all provided tickers"""
+    urls = np.vectorize(generate_url)(tickers)
+    return urls
 
 
 def scrape_yahoo_finance(url):
@@ -50,13 +50,13 @@ def scrape_yahoo_finance(url):
 
 
 def multi_thread_parse(urls):
-    """gets next url in queue and calls "scrape_url" until queue is empty"""
+    """gets next url in queue and calls scrape_yahoo_finance() until queue is empty"""
     with ThreadPoolExecutor() as executor:
         return executor.map(scrape_yahoo_finance, urls)
 
 
 def flag_key_terms(df, key_terms):
-    '''returns df with new columns that flag key terms in "Description"'''
+    """returns df with new columns that flag key terms in 'Description'"""
     for key, value in key_terms.items():
         df[key] = np.where(
             df["Description"].str.contains(value, case=False),
@@ -66,19 +66,23 @@ def flag_key_terms(df, key_terms):
     return df
 
 
-def main(file, output_dir):
-    df = load_fidelity_csv(file)
-    df = create_urls(df)
-    urls = list(df["urls"])
+def main(file, input_dir, output_dir, key_terms_list=None, ticker_list=None):
+    try:
+        df = load_fidelity_csv(file, input_dir)
+        tickers = df["Ticker"]
+    except FileNotFoundError:
+        tickers = ticker_list
+        df = pd.DataFrame()
+    urls = create_urls(tickers)
     df["Description"] = list(multi_thread_parse(urls))
     key_terms = {
         "phase_3": r"phase(?:\s{1,}3|\s{1,}I{3})",
-        "phase_2": r"phase(?:\s{1,}2|\s{1,}I{2})",
-        "alzheimers": r"alzheimer",
+        "phase_2": r"phase(?:\s{1,}2|\s{1,}I{2})"
     }
+    [key_terms.update({term: term}) for term in key_terms_list]
     df = flag_key_terms(df, key_terms)
     df.to_csv(output_dir + "stock_info.csv", index=False)
 
 
 if __name__ == "__main__":
-    main("screener_results", "")
+    main("screener_results", "", "", key_terms_list=["alzheimer"])
